@@ -1,4 +1,10 @@
+const now =
+  typeof globalThis.performance?.now === "function"
+    ? ()=>Math.trunc(globalThis.performance.now.bind(globalThis.performance))
+    : Date.now
+const __nativeSort = Array.prototype.sort
 const protoplus = {
+    snapshots: {},
     global: {
         JSON: {
             isJSON: function (obj) {
@@ -76,24 +82,63 @@ const protoplus = {
         Object: {
             typeOf: (thing) => {
                 if (typeof thing === 'object')
+
                     if (thing === null)
                         return 'null'
+
                     else if (Array.isArray(thing))
                         return 'array'
+
                     else
                         return 'object'
+
                 else if (typeof thing === 'number') {
+
                     if (Number.isNaN(thing))
                         return 'nan'
                     else if (!Number.isFinite(thing))
                         return 'infinity'
-                } else if (typeof thing === 'function' && /^class\b/.test(thing.toString())) // unreliable, do better later, right now focus on finishing the damn thing
-                    return 'class'
-                else
+
+                } else if (typeof thing === 'function') {
+
+                    function isClass(value) {
+                        if (typeof value !== 'function') return 
+                        // do many tests to prove class status
+                        const tests = [
+                            Function.prototype.toString.call(value).startsWith("class "),
+                            (()=>{
+                                try {
+                                    Reflect.construct(String, [], value)
+                                    return false;
+                                } catch (err) {
+                                    return /class constructor/i.test(err?.message ?? err);
+                                }
+                            })(),
+                            (()=>{
+                                if (!value.prototype) return false;
+                                return !Object.prototype.propertyIsEnumerable.call(value, 'prototype');
+                            })(),
+                            (() => {
+                                if (!value.prototype) return false;
+                                return Object.prototype.hasOwnProperty.call(value.prototype, 'constructor');
+                            })(),
+                            (() => {
+                                return value[Symbol.toStringTag] === 'Function';
+                            })()
+                        ]
+
+                        return tests.some(Boolean)
+                    }
+                    if (isClass(thing))
+                        return 'class'
+                    else
+                        return 'function'
+
+                } else
                     return typeof thing
             },
             types: Object.freeze( // made it a string so it's easier to add more
-                'number,string,boolean,function,symbol,bigint,undefined,null,array,object,nan,infinity,class'
+                'number,string,boolean,function,class,symbol,bigint,undefined,null,array,object,nan,infinity'
                 .split(',')
             )
         }
@@ -279,6 +324,7 @@ const protoplus = {
     },
     classes: {
         AdvDate: class {
+            #timestamp = ()=>timestamp || Date.now()
             // a more human friendly date API (made by ccjt)
             constructor(timestamp) {
                 this.weekNames = [
@@ -290,7 +336,6 @@ const protoplus = {
                     "Friday",
                     "Saturday"
                 ];
-                this.#timestamp = ()=>timestamp || Date.now()
                 this.times = {
                     timestamp: ()=>this.#timestamp(),
                     weekDay: ()=>new Date(this.#timestamp()).getDay() + 1,
@@ -327,15 +372,17 @@ const protoplus = {
             }
         }
     },
-    expand: () => {
+    expand: ({override = true, skipProtos = false, skipGlobals = false, skipClasses = false} = {}) => {
         const globals = protoplus.global
         const prototypes = protoplus.proto
         const classes = protoplus.classes
 
-        const startTime = Math.trunc(performance.now())
+        const startTime = now
 
         // iter globals
         for (let i = 0; i < Object.keys(globals).length; i++) {
+            if (skipGlobals) break; // skip expansion if told to
+
             const key = Object.keys(globals)[i]
             const defs = Object.values(globals)[i]
 
@@ -345,12 +392,21 @@ const protoplus = {
             for (let i = 0; i < Object.keys(defs).length; i++) {
                 const name = Object.keys(defs)[i]
                 const def = Object.values(defs)[i]
+
+                // store snapshot if definition already exists
+                if (name in globalThis[key]) {
+                    protoplus.snapshots[`global.${key}.${name}`] = globalThis[key][name]
+                    if (!override) continue; // skip definition if override is false
+                }
+
                 globalThis[key][name] = def
             }
         }
 
         // iter protos
         for (let i = 0; i < Object.keys(prototypes).length; i++) {
+            if (skipProtos) break; // skip expansion if told to
+
             const key = Object.keys(prototypes)[i]
             const defs = Object.values(prototypes)[i]
 
@@ -360,29 +416,51 @@ const protoplus = {
             for (let i = 0; i < Object.keys(defs).length; i++) {
                 const name = Object.keys(defs)[i]
                 const def = Object.values(defs)[i]
+                // store snapshot if definition already exists
+                if (name in globalThis[key].prototype) {
+                    if (
+                        `prototype.${key}.${name}` in protoplus.snapshots
+                        &&
+                        protoplus.snapshots[`prototype.${key}.${name}`] ===
+                    )
+                    protoplus.snapshots[`prototype.${key}.${name}`] = globalThis[key].prototype[name]
+                    if (!override) continue; // skip definition if override is false
+                }
+
                 globalThis[key].prototype[name] = def
             }
         }
         
         // def classes
         for (let i = 0; i < Object.keys(classes).length; i++) {
+            if (skipClasses) break; // skip expansion if told to
+
             const className = Object.keys(classes)[i]
             const classDef = Object.values(classes)[i]
 
+            if (className in globalThis) {
+                // add to snapshots and skip definition if it already exists,
+                // regardless of override
+
+                protoplus.snapshots[`value.${className}`] = true // use true for existence
+                continue;
+            }
+
             globalThis[className] = classDef
         }
-        const endTime = Math.trunc(performance.now())
+        const endTime = now
         console.log(`expanded methods in ${endTime - startTime}ms`)
     },
-    contract: () => {
+    contract: ({forceErase = false, skipProtos = false, skipGlobals = false, skipClasses = false} = {}) => {
         const globals = protoplus.global
         const prototypes = protoplus.proto
         const classes = protoplus.classes
 
-        const startTime = Math.trunc(performance.now())
+        const startTime = now
 
         // iter globals
         for (let i = 0; i < Object.keys(globals).length; i++) {
+            if (skipGlobals) break; // skip contraction if told to
             const key = Object.keys(globals)[i]
             const defs = Object.values(globals)[i]
 
@@ -392,12 +470,19 @@ const protoplus = {
             for (let i = 0; i < Object.keys(defs).length; i++) {
                 const name = Object.keys(defs)[i]
                 const def = Object.values(defs)[i]
-                delete globalThis[key][name]
+
+                // delete definition if erasing is forced or there is no snapshot
+                if (forceErase || !protoplus.snapshots[`global.${key}.${name}`])
+                    delete globalThis[key][name]
+                else
+                    globalThis[key][name] = protoplus.snapshots[`global.${key}.${name}`]
             }
         }
 
         // iter protos
         for (let i = 0; i < Object.keys(prototypes).length; i++) {
+            if (skipProtos) break; // skip contraction if told to
+            
             const key = Object.keys(prototypes)[i]
             const defs = Object.values(prototypes)[i]
 
@@ -407,22 +492,34 @@ const protoplus = {
             for (let i = 0; i < Object.keys(defs).length; i++) {
                 const name = Object.keys(defs)[i]
                 const def = Object.values(defs)[i]
-                delete globalThis[key].prototype[name]
+
+                // delete definition if erasing is forced or there is no snapshot
+                if (forceErase || !protoplus.snapshots[`prototype.${key}.${name}`])
+                    delete globalThis[key].prototype[name]
+                else
+                    globalThis[key].prototype[name] = protoplus.snapshots[`prototype.${key}.${name}`]
             }
         }
         
         // def classes
         for (let i = 0; i < Object.keys(classes).length; i++) {
+            if (skipClasses) break; // skip contraction if told to
+            
             const className = Object.keys(classes)[i]
-            const classDef = Object.values(classes)[i]
+
+            // skip deletion if there's a snapshot of it set to `true`,
+            // regardless if deletion is forced
+            if (`value.${className}` in protoplus.snapshots && protoplus.snapshots[`value.${className}`] === true) continue
 
             delete globalThis[className]
         }
-        const endTime = Math.trunc(performance.now())
+        const endTime = now
         console.log(`contracted methods in ${endTime - startTime}ms`)
     },
     version: '1.0.0'
 }
 
-
 console.log(`proto+ v${protoplus.version} loaded!`)
+
+
+export { protoplus }
