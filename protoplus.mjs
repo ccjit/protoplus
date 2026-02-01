@@ -1,6 +1,6 @@
 const now =
   typeof globalThis.performance?.now === "function"
-    ? ()=>Math.trunc(globalThis.performance.now.bind(globalThis.performance))
+    ? ()=>Math.trunc(performance.now())
     : Date.now
 const __nativeSort = Array.prototype.sort
 const protoplus = {
@@ -11,8 +11,8 @@ const protoplus = {
                 return obj !== null && typeof obj === 'object' && !Array.isArray(obj)
             },
             iterate: function (obj, callback) {
-                if (!JSON.isJSON(obj)) throw new Error('Argument "obj" has to be of type "JSON" ("object").')
-                if (typeof callback !== 'function') throw new Error('Argument "callback" has to be of type "function".')
+                if (!JSON.isJSON(obj)) throw new TypeError('Argument "obj" has to be of type "JSON" ("object").')
+                if (typeof callback !== 'function') throw new TypeError('Argument "callback" has to be of type "function".')
                 for (let i = 0; i < Object.keys(obj).length; i++) {
                     callback(Object.keys(obj)[i], Object.values(obj)[i], i)
                 }
@@ -288,15 +288,25 @@ const protoplus = {
                     if (this[i] !== char)
                         return i
                 }
+                return this.length
             },
             endsWithAmount: function (char) {
                 let iterations = 0
-                for (let i = this.length - 1; i > 0; i--) {
+                for (let i = this.length - 1; i >= 0; i--) {
                     if (this[i] !== char)
                         return iterations
 
                     iterations++
                 }
+                return this.length
+            },
+            amountOf: function (substring) {
+                let matches = 0;
+                for (let i = 0; i < this.length; i++) {
+                    let searchStr = this.substring(i, i + substring.length)
+                    if (searchStr === substring) matches++
+                }
+                return matches
             }
         },
 
@@ -383,7 +393,7 @@ const protoplus = {
         const prototypes = protoplus.proto
         const classes = protoplus.classes
 
-        const startTime = now
+        const startTime = now()
 
         // iter globals
         for (let i = 0; i < Object.keys(globals).length; i++) {
@@ -454,7 +464,7 @@ const protoplus = {
 
             globalThis[className] = classDef
         }
-        const endTime = now
+        const endTime = now()
         console.log(`expanded methods in ${endTime - startTime}ms`)
     },
     contract: ({forceErase = false, skipProtos = false, skipGlobals = false, skipClasses = false} = {}) => {
@@ -462,7 +472,7 @@ const protoplus = {
         const prototypes = protoplus.proto
         const classes = protoplus.classes
 
-        const startTime = now
+        const startTime = now()
 
         // iter globals
         for (let i = 0; i < Object.keys(globals).length; i++) {
@@ -519,7 +529,7 @@ const protoplus = {
 
             delete globalThis[className]
         }
-        const endTime = now
+        const endTime = now()
         console.log(`contracted methods in ${endTime - startTime}ms`)
     },
     version: '1.0.0'
@@ -527,5 +537,4 @@ const protoplus = {
 
 console.log(`proto+ v${protoplus.version} loaded!`)
 
-
-export { protoplus }
+// export { protoplus }
