@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A multi-environment module that expands JavaScript's prototype methods, global helper functions and others.",
   "main": "protoplus.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"test\""
   },
