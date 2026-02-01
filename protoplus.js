@@ -205,63 +205,67 @@ const protoplus = {
             escapeRegex: function () {
                 return RegExp.escape(String(this))
             },
-            trimLeft: function (...chars) {
-                if (chars.length < 1) {
-                    return this.trimStart(' ', '\t', '\n', '\r');
-                } else {
-                    let finalStr = String(this)
-                    chars.forEach(char => {
-                        if (typeof char !== 'string') return
-                        finalStr = finalStr.replace(new RegExp(`^${char.escapeRegex()}+`), "");
-                    })
-                    return finalStr;
+            trimStart: function (...strings) {
+                if (strings.length < 1) {
+                    strings = [' ', '\t', '\n', '\r'];
                 }
+                let finalStr = String(this)
+                strings.forEach(string => {
+                    if (typeof string !== 'string') return
+                    finalStr = finalStr.replace(new RegExp(`^${string.escapeRegex()}+`), "");
+                })
+                return strings;
             },
-            trimStart: function (...chars) {
-                if (chars.length < 1) {
-                    return this.trimStart(' ', '\t', '\n', '\r');
-                } else {
-                    let finalStr = String(this)
-                    chars.forEach(char => {
-                        if (typeof char !== 'string') return
-                        finalStr = finalStr.replace(new RegExp(`^${char.escapeRegex()}+`), "");
-                    })
-                    return finalStr;
+            trimStart: String.prototype.trimLeft,
+            trimRight: function (...strings) {
+                if (strings.length < 1) {
+                    strings = [' ', '\t', '\n', '\r'];
                 }
+                let finalStr = String(this)
+                strings.forEach(string => {
+                    if (typeof string !== 'string') return
+                    finalStr = finalStr.replace(new RegExp(`${string.escapeRegex()}+$`), "")
+                })
+                return finalStr;
             },
-            trimRight: function (...chars) {
-                if (chars.length < 1) {
-                    return this.trimEnd(' ', '\t', '\n', '\r');
-                } else {
-                    let finalStr = String(this)
-                    chars.forEach(char => {
-                        if (typeof char !== 'string') return
-                        finalStr = finalStr.replace(new RegExp(`${char.escapeRegex()}+$`), "")
-                    })
-                    return finalStr;
-                }
-            },
-            trimEnd: function (...chars) {
-                if (chars.length < 1) {
-                    return this.trimEnd(' ', '\t', '\n', '\r');
-                } else {
-                    let finalStr = String(this)
-                    chars.forEach(char => {
-                        if (typeof char !== 'string') return
-                        finalStr = finalStr.replace(new RegExp(`${char.escapeRegex()}+$`), "")
-                    })
-                    return finalStr;
-                }
-            },
-            trim: function (...chars) {
-                return this.trimStart(...chars).trimEnd(...chars);
+            trimEnd: String.prototype.trimRight,
+            trim: function (...strings) {
+                return this.trimStart(...strings).trimEnd(...strings);
             },
             reverse: function () {
                 return this.split('').reverse().join('')
             },
-            chars: function () { return this.split('') },
-            words: function () { return this.split(' ') },
-            lines: function () { return this.split('\n') },
+            erase: function(...strings) {
+                let finalStr = String(this)
+                strings.some(str => {
+                    finalStr = finalStr.replace(str, '')
+                })
+                return finalStr
+            },
+            eraseAll: function(...strings) {
+                let finalStr = String(this)
+                strings.some(str => {
+                    finalStr = finalStr.replaceAll(str, '')
+                })
+                return finalStr
+            },
+            chars: function() { return this.split('') },
+            words: function() { return this.split(' ') },
+            lines: function() { return this.split('\n') },
+            compactPunct: function() {
+                let puncts = {
+                    '...': '…',
+                    '---': '—',
+                    '--': '–',
+                    '-': '‑',
+                    '<<': '«',
+                    '>>': '»',
+                    '!!': '‼',
+                    '⁇': '⁇',
+                    '!?': '⁉',
+                    '?!': '⁉'
+                }
+            },
             forEach: function (callback, separator = '') {
                 const separated = this.split(separator)
                 for (let i = 0; i < separated.length; i++) {
@@ -324,9 +328,11 @@ const protoplus = {
     },
     classes: {
         AdvDate: class {
-            #timestamp = ()=>timestamp || Date.now()
             // a more human friendly date API (made by ccjt)
+
+            #timestamp; // define timestamp
             constructor(timestamp) {
+                this.#timestamp = ()=>timestamp || Date.now() // init timestamp
                 this.weekNames = [
                     "Sunday",
                     "Monday",
@@ -393,6 +399,8 @@ const protoplus = {
                 const name = Object.keys(defs)[i]
                 const def = Object.values(defs)[i]
 
+                if (globalThis[key][name] === def) continue; // skip definition if it's the same
+
                 // store snapshot if definition already exists
                 if (name in globalThis[key]) {
                     protoplus.snapshots[`global.${key}.${name}`] = globalThis[key][name]
@@ -416,13 +424,11 @@ const protoplus = {
             for (let i = 0; i < Object.keys(defs).length; i++) {
                 const name = Object.keys(defs)[i]
                 const def = Object.values(defs)[i]
+
+                if (globalThis[key].prototype[name] === def) continue; // skip definition if it's the same
+
                 // store snapshot if definition already exists
                 if (name in globalThis[key].prototype) {
-                    if (
-                        `prototype.${key}.${name}` in protoplus.snapshots
-                        &&
-                        protoplus.snapshots[`prototype.${key}.${name}`] ===
-                    )
                     protoplus.snapshots[`prototype.${key}.${name}`] = globalThis[key].prototype[name]
                     if (!override) continue; // skip definition if override is false
                 }
