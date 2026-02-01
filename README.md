@@ -1,10 +1,12 @@
 # proto+
-Proto+ (aka protoplus) is a module that expands JavaScript's prototype definitions, global helper functions and others.
+Proto+ (aka protoplus) is an ESM module that expands JavaScript's prototype definitions, global helper functions and others.
+
+**Note: This module is currently ESM-only. Using `require` or similar won't work. A CommonJS version is coming soon.**
 
 # How to use
-## In Web JS or HTML:
-Append this code to the end of your HTML file:
+## In browsers via HTML or JS:
 
+### Via HTML
 ```html
 <script
   src="https://raw.githubusercontent.com/ccjit/protoplus/refs/heads/main/protoplus.js"
@@ -12,28 +14,38 @@ Append this code to the end of your HTML file:
 ></script>
 ```
 
-or alternatively,
-
-append this code to the top of your JavaScript file:
-
+### Via JS
 ```js
 (()=>{
   // proto+ load script
+
   const script = document.createElement('script');
   script.src = "https://raw.githubusercontent.com/ccjit/protoplus/refs/heads/main/protoplus.js";
   script.type = "module";
-  document.body.appendChild(script);
+  document.head.appendChild(script);
 })();
 ```
+This makes `protoplus` available in your browser scripts.
 
-## In NodeJS
-Run one of these in your terminal:
+## In Node.js, Bun, or front-end frameworks like React/Next.js:
+Install proto+ (if you haven't already):
 
-`npm install git+https://github.com/ccjit/protoplus.git`
+```shell
+npm install git+https://github.com/ccjit/protoplus.git
+```
 
-`yarn add ccjit/protoplus`
+or alternatively, use `yarn`:
+```shell
+yarn add ccjit/protoplus
+```
 
 then add this code to the top of your script file:
 ```js
 import { protoplus } from 'protoplus';
+```
+
+## In Deno
+Add this code to the top of your script file:
+```js
+import { protoplus } from 'https://raw.githubusercontent.com/ccjit/protoplus/refs/heads/main/protoplus.js';
 ```
