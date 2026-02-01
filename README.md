@@ -1,7 +1,7 @@
 # proto+
 Proto+ (aka protoplus) is a multi-enviroment ESM module that expands JavaScript's prototype definitions, global helper functions and others.
 
-**Note: This module is currently ESM-only. Using `require` or similar won't work. A CommonJS version is coming soon.**
+**Note: This module is currently ESM-only. Using `require` or similar won't work. A CommonJS and WebJS version is coming soon.**
 
 # How to use
 ## In browsers via HTML or JS:
