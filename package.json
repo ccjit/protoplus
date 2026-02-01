@@ -1,0 +1,20 @@
+{
+  "name": "protoplus",
+  "version": "1.0.0",
+  "description": "A multi-environment module that expands JavaScript's prototype methods, global helper functions and others.",
+  "main": "protoplus.js",
+  "scripts": {
+    "test": "echo \"test\""
+  },
+  "keywords": [
+    "node",
+    "bun",
+    "deno",
+    "browser",
+    "webjs",
+    "multienvironment",
+    "crossenvironment"
+  ],
+  "author": "ccjt <circjit@gmail.com>",
+  "license": "ISC"
+}
