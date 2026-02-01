@@ -1,5 +1,5 @@
 # proto+
-Proto+ (aka protoplus) is an ESM module that expands JavaScript's prototype definitions, global helper functions and others.
+Proto+ (aka protoplus) is a multi-enviroment ESM module that expands JavaScript's prototype definitions, global helper functions and others.
 
 **Note: This module is currently ESM-only. Using `require` or similar won't work. A CommonJS version is coming soon.**
 
@@ -9,7 +9,7 @@ Proto+ (aka protoplus) is an ESM module that expands JavaScript's prototype defi
 ### Via HTML
 ```html
 <script
-  src="https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.js"
+  src="https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.mjs"
   type="module"
 ></script>
 ```
@@ -20,7 +20,7 @@ Proto+ (aka protoplus) is an ESM module that expands JavaScript's prototype defi
   // import proto+
 
   const script = document.createElement('script');
-  script.src = "https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.js";
+  script.src = "https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.mjs";
   script.type = "module";
   document.head.appendChild(script);
 })();
@@ -46,7 +46,7 @@ import { protoplus } from 'protoplus';
 ## In Deno
 Add this code to the top of your script file:
 ```js
-import { protoplus } from 'https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.js';
+import { protoplus } from 'https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.mjs';
 ```
 
 
