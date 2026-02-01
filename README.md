@@ -9,7 +9,7 @@ Proto+ (aka protoplus) is an ESM module that expands JavaScript's prototype defi
 ### Via HTML
 ```html
 <script
-  src="https://raw.githubusercontent.com/ccjit/protoplus/refs/heads/main/protoplus.js"
+  src="https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.js"
   type="module"
 ></script>
 ```
@@ -17,15 +17,14 @@ Proto+ (aka protoplus) is an ESM module that expands JavaScript's prototype defi
 ### Via JS
 ```js
 (()=>{
-  // proto+ load script
+  // import proto+
 
   const script = document.createElement('script');
-  script.src = "https://raw.githubusercontent.com/ccjit/protoplus/refs/heads/main/protoplus.js";
+  script.src = "https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.js";
   script.type = "module";
   document.head.appendChild(script);
 })();
 ```
-This makes `protoplus` available in your browser scripts.
 
 ## In Node.js, Bun, or front-end frameworks like React/Next.js:
 Install proto+ (if you haven't already):
@@ -47,5 +46,12 @@ import { protoplus } from 'protoplus';
 ## In Deno
 Add this code to the top of your script file:
 ```js
-import { protoplus } from 'https://raw.githubusercontent.com/ccjit/protoplus/refs/heads/main/protoplus.js';
+import { protoplus } from 'https://cdn.jsdelivr.net/gh/ccjit/protoplus@main/protoplus.js';
 ```
+
+
+# How to use proto+
+After importing the script to your project, you can use `protoplus.expand()` to expand prototypes and others, and `protoplus.contract()` to restore them to their default/previous value.
+It's recommended to run `protoplus.expand()` after the import statement (if you're using proto+ in a browser and imported it via HTML, run `protoplus.expand()` at the top of your script file).
+
+You can also use `protoplus.expand({ skipClasses: true })` to only expand prototypes and global helpers.
