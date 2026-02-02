@@ -537,4 +537,4 @@ const protoplus = {
 
 console.log(`proto+ v${protoplus.version} loaded!`)
 
-// export { protoplus }
+export { protoplus }
