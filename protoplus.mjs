@@ -2,7 +2,7 @@ const now =
   typeof globalThis.performance?.now === "function"
     ? ()=>Math.trunc(performance.now())
     : Date.now
-const __nativeSort = Array.prototype.sort
+const ___nativeSort = Array.prototype.sort
 const protoplus = {
     snapshots: {},
     global: {
@@ -198,6 +198,22 @@ const protoplus = {
             }
         },
 
+        Boolean: {
+            formatTypes: {
+                affirm: ['no', 'yes'],
+                binary: ['0', '1'],
+                onoff: ['off', 'on'],
+                enable: ['disabled', 'enabled'],
+                literal: ['false', 'true']
+            },
+            format: function ({ type = 'literal' }) {
+                const bool = this.valueOf()
+                const types = Boolean.formatTypes
+
+                const pair = types[type] ?? ['false', 'true']
+                return pair[+bool]
+            }
+        },
         String: {
             last: function () {
                 return this[this.length - 1]
@@ -307,6 +323,11 @@ const protoplus = {
                     if (searchStr === substring) matches++
                 }
                 return matches
+            },
+            cleanup: function() {
+                return this.valueOf()
+                    .normalize("NFKD")
+                    .replace(/\p{M}/gu, "")
             }
         },
 
